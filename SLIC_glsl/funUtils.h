@@ -10,7 +10,7 @@
 
 void displayShaderLog(GLuint obj, char * message);
 
-void displayTexture2D(GLuint tex);
+void displayTexture2D(GLuint tex, GLenum textUnitEnum);
 
  int iDivUp(int a, int b);
 
@@ -21,3 +21,8 @@ void getTexture(GLuint textureName, GLenum format, GLenum type, void* texDataOut
 char* textFileRead(char * fn);
 
 GLuint createProgShader(GLenum typeShader, char * sourceFile);
+
+void createTextureImage2D(GLenum textUnitEnum, int textUnitInt, GLuint & textureName, GLint internalFormat, int width, int height, GLenum format, GLenum type, const void * data, GLenum access);
+
+void createPBO(GLuint &pboName, GLenum target, int sizeByte, const void * data, GLenum usage);
+

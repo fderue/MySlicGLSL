@@ -27,7 +27,7 @@ float computeDistance(vec2 c_xy,vec2 px_xy, vec3 c_Lab,vec3 px_Lab,float diamSpx
 void main(){
 
 
-	uint cluster_idx = gl_GlobalInvocationID.x; // not correct if nBloc_per_cluster>1
+	uint cluster_idx = gl_GlobalInvocationID.x; 
 
 	if(cluster_idx<nSpx){
 		vec2 cluster_xy = vec2(clusters.att[cluster_idx*5+3],clusters.att[cluster_idx*5+4]);

@@ -1,7 +1,7 @@
 #version 430
 #extension GL_ARB_compute_variable_group_size : enable
 layout(local_size_variable) in;
-layout(std430, binding=0) buffer ssbo{
+layout(std430, binding=0)coherent buffer ssbo{
 float att[];
 }clusters;
 
@@ -24,15 +24,16 @@ void main(){
 		clusters.att[cluster_idx*5+4]=0;
 		
 
-		//float att_tmp[5]={0};
+		float att_tmp[5]={0};
 		//look in labelsMat for their labels (not optimal)
 		int counter = 0;
-		for(int i=0; i<height; i++){
-			for(int j=0; j<width; j++){
-				if(float(cluster_idx)==imageLoad(labelsMat,ivec2(j,i)).x){
+		for(int i=0; i<5; i++){
+			for(int j=0; j<5; j++){
+				if(float(cluster_idx)==imageLoad(labelsMat,ivec2(j,i)).x)
+				{
 					
 
-					vec4 colorFrame = imageLoad(frame,ivec2(j,i));
+					//vec4 colorFrame = imageLoad(frame,ivec2(j,i));
 
 					clusters.att[cluster_idx*5]+=colorFrame.x;
 					clusters.att[cluster_idx*5+1]+=colorFrame.y;
@@ -52,6 +53,7 @@ void main(){
 			}
 		}
 		if(counter!=0){
+			
 			/*clusters.att[cluster_idx*5]=att_tmp[0]/counter;
 			clusters.att[cluster_idx*5+1]=att_tmp[1]/counter;
 			clusters.att[cluster_idx*5+2]=att_tmp[2]/counter;
@@ -65,7 +67,7 @@ void main(){
 			clusters.att[cluster_idx*5+4]/=counter;
 
 		}else{
-			clusters.att[cluster_idx*5+3]=-1; //reject this center
+			//clusters.att[cluster_idx*5+3]=-1; //reject this center
 		}
 	}
 }

@@ -47,7 +47,7 @@ void displayShaderLog(GLuint obj, string message)
 	}
 }
 
-void displayTexture2D(GLuint tex) {
+void displayTexture2D(GLuint tex, GLenum texUnitEnum) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glMatrixMode(GL_PROJECTION);
@@ -57,6 +57,7 @@ void displayTexture2D(GLuint tex) {
 	glLoadIdentity();
 	gluLookAt(0, 0, 1, 0, 0, 0, 0, 1, 0);
 
+	glActiveTexture(texUnitEnum);
 	glBindTexture(GL_TEXTURE_2D, tex);
 	
 	glBegin(GL_QUADS);
@@ -120,4 +121,26 @@ GLuint createProgShader(GLenum typeShader, char* sourceFile) {
 	glLinkProgram(prog);
 	return prog;
 
+}
+
+
+void createTextureImage2D(GLenum textUnitEnum,int textUnitInt, GLuint& textureName, GLint internalFormat, int width, int height, GLenum format, GLenum type, const void* data, GLenum access) {
+	glActiveTexture(textUnitEnum);
+	glGenTextures(1, &textureName);
+	glBindTexture(GL_TEXTURE_2D, textureName);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, data);
+	//glTexStorage2D(GL_TEXTURE_2D, 0, internalFormat, width, height);
+	glBindImageTexture(textUnitInt, textureName, 0, GL_FALSE, 0, access, internalFormat);
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void createPBO(GLuint& pboName, GLenum target, int sizeByte, const void * data, GLenum usage) {
+	glGenBuffers(1, &pboName);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboName);
+	glBufferData(GL_PIXEL_UNPACK_BUFFER, sizeByte, data, usage);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }

@@ -9,7 +9,7 @@
 #define WIN_HEIGHT 600
 
 
-#define NSPX 1000
+#define NSPX 1200
 #define WC 35
 using namespace std;
 using namespace cv;
@@ -86,15 +86,16 @@ int main(int argc, char* argv[]) {
 	{
 		start = getTickCount();
 		slic.Segment(frame);
+
 		end = getTickCount();
 		cout <<"segment total "<< (end - start) / getTickFrequency() << endl;
-		slic.displayBound(frame, Scalar(255, 0, 0));
-		imshow("out", frame);
+		//slic.displayBound(frame, Scalar(255, 0, 0));
+		imshow("out GPU", frame);
 		 start= getTickCount();
 		slic.gpu_DrawBound();
 		end = getTickCount();
 		//cout <<"display "<< (end - start) / getTickFrequency() << endl;
-		waitKey();
+		waitKey(0);
 	}
 	
 
