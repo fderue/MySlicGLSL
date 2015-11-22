@@ -30,7 +30,7 @@ private:
 	GLuint csProg_UpdateClusters;
 
 
-	GLuint ssbo_clusters;
+	GLuint ssbo_clusters, ssbo_clustersAcc;
 
 	GLuint text_frameRGB; const int text_unit0 = 0; GLuint pbo_frameRGB;
 	GLuint text_frameLab; const int text_unit1 = 1; GLuint pbo_frameLab;

@@ -75,15 +75,26 @@ void MySlicGLSL::Segment(Mat& frame) {
 		//gpu_segmentation();
 		gpu_PxFindNearestCluster();
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+		/*void* acc;
+		getSSBO(ssbo_clusters, acc);
+		float* accInt = (float*)acc;
+		for (int a = 0; a < 60; a++)cout << accInt[a] << endl;
+
+		*/
 		/*float* label_f = new float[m_width*m_height];
 		auto start = getTickCount();
 		getTexture(text_distances, GL_RED, GL_FLOAT, label_f); // very slow : 0.5 s
 		auto end = getTickCount();
 		cout << "load text " << (end - start) / getTickFrequency() << endl;*/
 		//for (int a = 0; a < 480*640; a++)cout << label_f[a] << endl;
-		
-		gpu_UpdateClusters();
+	
+		//gpu_UpdateClusters();
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+		/*getSSBO(ssbo_clusters, acc);
+		accInt = (float*)acc;
+		for (int a = 0; a < 60; a++)cout <<"after "<< accInt[a] << endl;*/
 	}
 
 }
@@ -114,9 +125,18 @@ void MySlicGLSL::InitBuffers()
 	//cluster vector -> ssbo
 	glGenBuffers(1, &ssbo_clusters);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_clusters);
-	//glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(float) * 5 * m_nSpx, m_clusters, GL_DYNAMIC_DRAW); //non immutable
 	glBufferStorage(GL_SHADER_STORAGE_BUFFER, sizeof(float) * 5 * m_nSpx, m_clusters, GL_DYNAMIC_STORAGE_BIT|GL_MAP_READ_BIT|GL_MAP_WRITE_BIT);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, ssbo_clusters);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo_clusters);
+
+	glGenBuffers(1, &ssbo_clustersAcc);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_clustersAcc);
+	glBufferStorage(GL_SHADER_STORAGE_BUFFER, sizeof(int) * 6 * m_nSpx, NULL, GL_DYNAMIC_STORAGE_BIT | GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbo_clustersAcc);
+	
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+
+
 
 	createTextureImage2D(GL_TEXTURE0, text_unit0, text_frameRGB, GL_RGBA32F, m_width, m_height, GL_BGR, GL_UNSIGNED_BYTE, NULL, GL_READ_WRITE);
 	createTextureImage2D(GL_TEXTURE1, text_unit1, text_frameLab, GL_RGBA32F, m_width, m_height, GL_RGB, GL_FLOAT, NULL, GL_READ_WRITE);

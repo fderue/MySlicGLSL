@@ -4,10 +4,11 @@ layout(local_size_variable) in;
 layout(std430, binding=0)coherent buffer ssbo{
 float att[];
 }clusters;
+layout(std430, binding=1)coherent buffer ssboAcc{
+	int accAtt[];
+};
 
-layout(rgba32f,binding=1) readonly uniform image2D frame;
-layout(binding=2,r32f)coherent uniform image2D distancesMat;
-layout(binding=3,r32f)uniform image2D labelsMat;
+
 
 uniform int width,height;
 uniform int nSpx;
@@ -17,57 +18,22 @@ void main(){
 
 	if(cluster_idx<nSpx)
 	{
-		clusters.att[cluster_idx*5]=0;
-		clusters.att[cluster_idx*5+1]=0;
-		clusters.att[cluster_idx*5+2]=0;
-		clusters.att[cluster_idx*5+3]=0;
-		clusters.att[cluster_idx*5+4]=0;
-		
+		uint cluster_idx6 = cluster_idx*6;
+		uint cluster_idx5 = cluster_idx*5;
+		int counter = accAtt[cluster_idx6+5];
+		if(counter != 0){
+			clusters.att[cluster_idx5] = accAtt[cluster_idx6]/counter;
+			clusters.att[cluster_idx5+1] = accAtt[cluster_idx6+1]/counter;
+			clusters.att[cluster_idx5+2] = accAtt[cluster_idx6+2]/counter;
+			clusters.att[cluster_idx5+3] = accAtt[cluster_idx6+3]/counter;
+			clusters.att[cluster_idx5+4] = accAtt[cluster_idx6+4]/counter;
 
-		float att_tmp[5]={0};
-		//look in labelsMat for their labels (not optimal)
-		int counter = 0;
-		for(int i=0; i<5; i++){
-			for(int j=0; j<5; j++){
-				if(float(cluster_idx)==imageLoad(labelsMat,ivec2(j,i)).x)
-				{
-					
-
-					//vec4 colorFrame = imageLoad(frame,ivec2(j,i));
-
-					clusters.att[cluster_idx*5]+=colorFrame.x;
-					clusters.att[cluster_idx*5+1]+=colorFrame.y;
-					clusters.att[cluster_idx*5+2]+=colorFrame.z;
-					clusters.att[cluster_idx*5+3]+=j;
-					clusters.att[cluster_idx*5+4]+=i;
-					/*att_tmp[0]+=colorFrame.x;
-					att_tmp[1]+=colorFrame.y;
-					att_tmp[2]+=colorFrame.z;
-					att_tmp[3]+=j;
-					att_tmp[4]+=i;*/
-
-					counter++;
-					
-
-				}
-			}
-		}
-		if(counter!=0){
-			
-			/*clusters.att[cluster_idx*5]=att_tmp[0]/counter;
-			clusters.att[cluster_idx*5+1]=att_tmp[1]/counter;
-			clusters.att[cluster_idx*5+2]=att_tmp[2]/counter;
-			clusters.att[cluster_idx*5+3]=att_tmp[3]/counter;
-			clusters.att[cluster_idx*5+4]=att_tmp[4]/counter;*/
-
-			clusters.att[cluster_idx*5]/=counter;
-			clusters.att[cluster_idx*5+1]/=counter;
-			clusters.att[cluster_idx*5+2]/=counter;
-			clusters.att[cluster_idx*5+3]/=counter;
-			clusters.att[cluster_idx*5+4]/=counter;
-
-		}else{
-			//clusters.att[cluster_idx*5+3]=-1; //reject this center
+			accAtt[cluster_idx6] = 0;
+			accAtt[cluster_idx6+1] = 0;
+			accAtt[cluster_idx6+2] = 0;
+			accAtt[cluster_idx6+3] = 0;
+			accAtt[cluster_idx6+4] = 0;
+			accAtt[cluster_idx6+5] = 0;
 		}
 	}
 }

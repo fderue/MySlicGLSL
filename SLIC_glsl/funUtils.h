@@ -26,3 +26,5 @@ void createTextureImage2D(GLenum textUnitEnum, int textUnitInt, GLuint & texture
 
 void createPBO(GLuint &pboName, GLenum target, int sizeByte, const void * data, GLenum usage);
 
+void getWlHl(int w, int h, int d, int & wl, int & hl);
+

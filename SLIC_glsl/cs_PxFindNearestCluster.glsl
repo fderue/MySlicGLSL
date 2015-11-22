@@ -1,9 +1,15 @@
 #version 430
 #extension GL_ARB_compute_variable_group_size : enable
 layout(local_size_variable) in;
-layout(std430, binding=5)readonly coherent buffer ssbo{
+
+
+layout(std430, binding=0)readonly coherent buffer ssbo{
 float att[];
 }clusters;
+layout(std430, binding=1)coherent buffer ssboAcc{
+	int accAtt[];
+};
+
 
 layout(rgba32f,binding=1)uniform image2D frame;
 layout(binding=2,r32f)coherent uniform image2D distancesMat;
@@ -108,8 +114,17 @@ void main(){
 				}
 			}
 		}
-		imageStore(distancesMat,pxPos,vec4(distanceMin,0,0,0));
-	
+		imageStore(distancesMat,pxPos,vec4(distanceMin,0,0,0)); // not useful !!
 		imageStore(labelsMat,pxPos,vec4(labelMin));
+
+
+		// =============== second part ===================
+		int labelMin6 = int(labelMin*6);
+		atomicAdd(accAtt[labelMin6],int(px_Lab.x));
+		atomicAdd(accAtt[labelMin6+1],int(px_Lab.y));
+		atomicAdd(accAtt[labelMin6+2],int(px_Lab.z));
+		atomicAdd(accAtt[labelMin6+3],pxPos.x);
+		atomicAdd(accAtt[labelMin6+4],pxPos.y);
+		atomicAdd(accAtt[labelMin6+5],1); //counter
 	}
 }

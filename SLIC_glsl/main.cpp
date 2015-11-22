@@ -2,7 +2,6 @@
 #include <opencv2/opencv.hpp>
 #include <GL/glew.h>
 #include <GL/freeglut.h>
-
 #include "MySlicGLSL.h"
 #include "funUtils.h"
 #define WIN_WIDTH 800
@@ -97,6 +96,7 @@ int main(int argc, char* argv[]) {
 		//cout <<"display "<< (end - start) / getTickFrequency() << endl;
 		waitKey(0);
 	}
+
 	
 
 
