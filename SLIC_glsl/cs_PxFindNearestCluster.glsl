@@ -17,18 +17,18 @@ layout(binding=3,r32f)coherent uniform image2D labelsMat;
 
 shared float shareClusters[125];
 
-uniform int diamSpx;
+uniform int wSpx,hSpx;
 uniform float wc2;
 uniform int nBloc_per_col,nBloc_per_row;
 uniform int width,height;
 uniform int nSpx;
 
-float computeDistance(vec2 c_p_xy, vec3 c_Lab,vec3 px_Lab,float diamSpx2){
+float computeDistance(vec2 c_p_xy, vec3 c_Lab,vec3 px_Lab,float areaSpx){
 	
 	float ds2 = pow(c_p_xy.x,2)+pow(c_p_xy.y,2);
 	vec3 c_p_Lab = c_Lab-px_Lab;
 	float dc2 = pow(c_p_Lab.x,2)+pow(c_p_Lab.y,2)+pow(c_p_Lab.z,2);
-	float dist = sqrt(dc2+ds2/diamSpx2*wc2);
+	float dist = sqrt(dc2+ds2/areaSpx*wc2);
 
 	return dist;
 }
@@ -56,7 +56,7 @@ int convertIdx(ivec2 wg, int lc_idx){
 void main(){
 
 	ivec2 pxPos = ivec2(gl_GlobalInvocationID.xy);
-	float diamSpx2 = diamSpx*diamSpx;
+	float areaSpx = wSpx*hSpx;
 	float distanceMin = 2000000.f;
 	float labelMin = -5;
 	ivec2 wgIdx = ivec2(gl_WorkGroupID.xy);
@@ -103,9 +103,9 @@ void main(){
 				vec3 cluster_Lab = vec3(shareClusters[cluster_idx5],shareClusters[cluster_idx5+1],shareClusters[cluster_idx5+2]);
 
 				vec2 px_c_xy = px_xy-cluster_xy;
-				if(abs(px_c_xy.x)<diamSpx && abs(px_c_xy.y)<diamSpx){
+				if(abs(px_c_xy.x)<wSpx && abs(px_c_xy.y)<hSpx){
 
-					float distTmp = min(computeDistance(px_c_xy, cluster_Lab,px_Lab,diamSpx2),distanceMin);
+					float distTmp = min(computeDistance(px_c_xy, cluster_Lab,px_Lab,areaSpx),distanceMin);
 					
 					if(distTmp!=distanceMin){
 						distanceMin = distTmp;

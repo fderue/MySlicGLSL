@@ -73,14 +73,32 @@ int main(int argc, char* argv[]) {
 	//allow runtime function load (like shader)
 	glewInit();
 
+	size_t start, end;
+	
+	/*
+	Mat im = imread("D:/Pictures/lenaFull.jpg");
+	MySlicGLSL slicIm(20, WC);
+	slicIm.Initialize(im);
+	start = getTickCount();
+	slicIm.Segment(im);
+	end = getTickCount();
+	slicIm.gpu_DrawBound();
+
+	cout << "segmentation runtime = " << (end - start) / getTickFrequency() <<" ms"<< endl;
+
+	slicIm.displayBound(im, Scalar(255, 0, 0));
+	imshow("out GPU", im);
+	
+	*/
+
+	VideoWriter vWriter("tiger1GPU.avi", -1,100 , Size(640, 480));
 	VideoCapture cap("D:/Videos/Tiger1/img/%04d.jpg");
 	Mat frame;
 	cap >> frame;
-	MySlicGLSL slic(NSPX, WC);
+	MySlicGLSL slic(16, WC);
 	slic.Initialize(frame);
 	
-	size_t start, end;
-	namedWindow("out");
+	namedWindow("out GPU");
 	while (cap.read(frame))
 	{
 		start = getTickCount();
@@ -88,23 +106,21 @@ int main(int argc, char* argv[]) {
 
 		end = getTickCount();
 		cout <<"segment total "<< (end - start) / getTickFrequency() << endl;
-		//slic.displayBound(frame, Scalar(255, 0, 0));
+		slic.displayBound(frame, Scalar(0, 0, 255));
 		imshow("out GPU", frame);
-		 start= getTickCount();
+		 //start= getTickCount();
 		slic.gpu_DrawBound();
-		end = getTickCount();
+		//end = getTickCount();
 		//cout <<"display "<< (end - start) / getTickFrequency() << endl;
-		waitKey(0);
+		vWriter <<frame ;
+		waitKey(30);
 	}
-
 	
-
-
-
+	
 	waitKey();
 	//start all the tasks
 	//glutMainLoop();
-
+	
 	return 0;
 
 }
