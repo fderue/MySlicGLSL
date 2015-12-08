@@ -1,3 +1,22 @@
+/*
+ * Derue Francois-Xavier
+ * 08/12/2015
+ * [INF8702] Projet
+ * SLIC on GPU
+ *
+ *
+ * Note :
+ * specify path of the shaders in MySlicGLSL.cpp
+
+ * Library required :
+ * - openCV
+ * - openGL 4.3 or higher
+ * - GLEW
+ * - FREEGLUT
+ */
+
+
+
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <GL/glew.h>
@@ -11,19 +30,26 @@
 using namespace std;
 using namespace cv;
 
+/* image or video to test*/
+string im_path = "/media/derue/4A30A96F30A962A5/Videos/Tiger1/img/0001.jpg";
+string video_path = "/media/derue/4A30A96F30A962A5/Videos/Tiger1/img/%04d.jpg";
+
 int main(int argc, char* argv[]) {
 
 	//openGL context initialization (display, mouse event, ...)
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
 
+
 	int win_w, win_h;
 #if VIDEO
-	VideoCapture cap("/media/derue/4A30A96F30A962A5/Videos/Tiger1/img/%04d.jpg");
+	VideoCapture cap(video_path);
+	if(!cap.isOpened()){cerr<<"video not found "<<endl; return -1;}
 	win_w = cap.get(CV_CAP_PROP_FRAME_WIDTH);
 	win_h = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
 #else
-	Mat im = imread("/media/derue/4A30A96F30A962A5/Videos/Tiger1/img/0001.jpg"); //input image RGB
+    Mat im = imread(im_path);
+    if(!im.data){cerr<<"no image found"<<endl;return -1;}
 	win_w = im.cols;
 	win_h = im.rows;
 #endif
@@ -53,7 +79,7 @@ int main(int argc, char* argv[]) {
 		start = getTickCount();
 		slic.Segment(frame);
 		end = getTickCount();
-		cout <<"segment total time : "<< (end - start) / getTickFrequency() <<" ms"<<endl;
+		cout <<"segment total time : "<< (end - start) / getTickFrequency() <<" s"<<endl;
 		slic.gpu_DrawBound();
 		waitKey(30);
 	}

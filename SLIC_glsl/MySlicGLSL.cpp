@@ -4,11 +4,11 @@ using namespace std;
 using namespace cv;
 
 // specify shader path !!
-char* cs_PxFindNearestCluster_path = "/media/derue/4A30A96F30A962A5/ClionProjects/SLIC_glsl/MySlicGLSL/SLIC_glsl/cs_PxFindNearestCluster.glsl";
-char* cs_UpdateClusters_path = "/media/derue/4A30A96F30A962A5/ClionProjects/SLIC_glsl/MySlicGLSL/SLIC_glsl/cs_UpdateClusters.glsl";
-char* cs_DrawBound_path = "/media/derue/4A30A96F30A962A5/ClionProjects/SLIC_glsl/MySlicGLSL/SLIC_glsl/cs_DrawBound.glsl";
-char* fs_path = "/media/derue/4A30A96F30A962A5/ClionProjects/SLIC_glsl/MySlicGLSL/SLIC_glsl/fragment.glsl";
-char* vs_path = "/media/derue/4A30A96F30A962A5/ClionProjects/SLIC_glsl/MySlicGLSL/SLIC_glsl/vertex.glsl";
+char* cs_PxFindNearestCluster_path = "/media/derue/4A30A96F30A962A5/ClionProjects/SLIC_glsl/MySlicGLSL/SLIC_glsl/shader/cs_PxFindNearestCluster.glsl";
+char* cs_UpdateClusters_path = "/media/derue/4A30A96F30A962A5/ClionProjects/SLIC_glsl/MySlicGLSL/SLIC_glsl/shader/cs_UpdateClusters.glsl";
+char* cs_DrawBound_path = "/media/derue/4A30A96F30A962A5/ClionProjects/SLIC_glsl/MySlicGLSL/SLIC_glsl/shader/cs_DrawBound.glsl";
+char* fs_path = "/media/derue/4A30A96F30A962A5/ClionProjects/SLIC_glsl/MySlicGLSL/SLIC_glsl/shader/fragment.glsl";
+char* vs_path = "/media/derue/4A30A96F30A962A5/ClionProjects/SLIC_glsl/MySlicGLSL/SLIC_glsl/shader/vertex.glsl";
 
 MySlicGLSL::MySlicGLSL(int diamSpx, float wc) {
 	m_diamSpx = diamSpx;
