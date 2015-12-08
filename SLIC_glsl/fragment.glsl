@@ -1,7 +1,4 @@
 uniform sampler2D frameRGB;
-uniform sampler2D isTaken;
-uniform sampler2D labelsMat;
-
 
 void main(void){
 

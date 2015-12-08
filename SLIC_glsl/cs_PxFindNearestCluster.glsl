@@ -1,7 +1,12 @@
 #version 430
 #extension GL_ARB_compute_variable_group_size : enable
-layout(local_size_variable) in;
 
+/*
+Compute Shader : Assignement step
+*/
+
+
+layout(local_size_variable) in;
 
 layout(std430, binding=0)readonly coherent buffer ssbo{
 float att[];
@@ -12,7 +17,7 @@ layout(std430, binding=1)coherent buffer ssboAcc{
 
 
 layout(rgba32f,binding=1)uniform image2D frame;
-layout(binding=2,r32f)coherent uniform image2D distancesMat;
+layout(binding=2,r32f)coherent uniform image2D distancesMat; //not needed anymore
 layout(binding=3,r32f)coherent uniform image2D labelsMat;
 
 shared float shareClusters[125];
@@ -33,17 +38,7 @@ float computeDistance(vec2 c_p_xy, vec3 c_Lab,vec3 px_Lab,float areaSpx){
 	return dist;
 }
 
-vec2 findMin(float dist[10],float label[10] ){
-	vec2 dist_label = vec2(1000000,-1);
-	for(int i=0; i<10; i++){
-		if(dist[i]<dist_label.x){
-			dist_label.x = dist[i];
-			dist_label.y = label[i];
-		}
-	}
-	return dist_label;
-}
-
+// local centroid idx to global idx
 int convertIdx(ivec2 wg, int lc_idx){
 
 	ivec2 relPos2D = ivec2(lc_idx%5-2,lc_idx/5-2);
@@ -57,8 +52,8 @@ void main(){
 
 	ivec2 pxPos = ivec2(gl_GlobalInvocationID.xy);
 	float areaSpx = wSpx*hSpx;
-	float distanceMin = 2000000.f;
-	float labelMin = -5;
+	float distanceMin = 200000000.f;
+	float labelMin = -1;
 	ivec2 wgIdx = ivec2(gl_WorkGroupID.xy);
 
 //gathering 25 clusters
@@ -92,9 +87,12 @@ void main(){
 			}
 		}
 
+
+        //synchronization before using shared memory
 		barrier();
 		memoryBarrierShared();
 
+        //compare 25 centroids
 		for(int cluster_idx=0; cluster_idx<25; cluster_idx++) // cluster locaux
 		{
 			int cluster_idx5 = cluster_idx*5;
@@ -114,11 +112,10 @@ void main(){
 				}
 			}
 		}
-		imageStore(distancesMat,pxPos,vec4(distanceMin,0,0,0)); // not useful !!
 		imageStore(labelsMat,pxPos,vec4(labelMin));
 
 
-		// =============== second part ===================
+		// =============== Accumulator : simplify update step ===================
 		int labelMin6 = int(labelMin*6);
 		atomicAdd(accAtt[labelMin6],int(px_Lab.x));
 		atomicAdd(accAtt[labelMin6+1],int(px_Lab.y));

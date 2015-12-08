@@ -3,6 +3,13 @@
 using namespace std;
 using namespace cv;
 
+// specify shader path !!
+char* cs_PxFindNearestCluster_path = "/media/derue/4A30A96F30A962A5/ClionProjects/SLIC_glsl/MySlicGLSL/SLIC_glsl/cs_PxFindNearestCluster.glsl";
+char* cs_UpdateClusters_path = "/media/derue/4A30A96F30A962A5/ClionProjects/SLIC_glsl/MySlicGLSL/SLIC_glsl/cs_UpdateClusters.glsl";
+char* cs_DrawBound_path = "/media/derue/4A30A96F30A962A5/ClionProjects/SLIC_glsl/MySlicGLSL/SLIC_glsl/cs_DrawBound.glsl";
+char* fs_path = "/media/derue/4A30A96F30A962A5/ClionProjects/SLIC_glsl/MySlicGLSL/SLIC_glsl/fragment.glsl";
+char* vs_path = "/media/derue/4A30A96F30A962A5/ClionProjects/SLIC_glsl/MySlicGLSL/SLIC_glsl/vertex.glsl";
+
 MySlicGLSL::MySlicGLSL(int diamSpx, float wc) {
 	m_diamSpx = diamSpx;
 	m_wc = wc;
@@ -24,15 +31,14 @@ void MySlicGLSL::Initialize(Mat& frame0) {
 	m_areaSpx = m_wSpx*m_hSpx;
 	m_nSpx = m_nPx/m_areaSpx; // should be an integer!!
 
-	//===== init cpu buffer (to be deleted) ======
+	//===== init cpu buffer  ======
 	m_clusters = new float[m_nSpx * 5];
 	m_distances = new float[m_nPx];
 	m_labels = new float[m_nPx];
 	m_isTaken = new float[m_nPx];
-
 	m_labelsCPU = new float[m_nPx]; 
 
-	//===== clearing value ====
+	//===== buffer clearing value ====
 	for (int i = 0; i < m_height*m_width; i++) {
 		m_labels[i] = -1;
 		m_distances[i] = FLT_MAX;
@@ -40,22 +46,22 @@ void MySlicGLSL::Initialize(Mat& frame0) {
 	}
 
 	//allocate buffer on Gpu
-	InitBuffers(); //ok
+	InitBuffers();
 
 	// create compute shader
 	CreateCS();
-
 }
 
 void MySlicGLSL::Segment(Mat& frame) {
-	ClearBuffers(); // reset all the buffers with constant value allocated on the GPU (distance, label, isTaken)
+	ClearBuffers();
 	
 	Mat frameLab;
 	cvtColor(frame, frameLab, CV_BGR2Lab);
 	frameLab.convertTo(frameLab, CV_32FC3);
-	SendFrame(frame,frameLab); // transfer frame in the already allocated space ok
+	SendFrame(frame,frameLab);
 	InitClusters(frameLab); 
 
+	// main loop
 	for (int i = 0; i < N_ITER; i++) {
 		gpu_PxFindNearestCluster();
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
@@ -64,7 +70,7 @@ void MySlicGLSL::Segment(Mat& frame) {
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 	}
 
-	enforceConnectivity();
+	//enforceConnectivity(); // optional (cpu implementation -> slow down) , comment for full speed
 }
 
 void MySlicGLSL::InitClusters(Mat& frameLab) {
@@ -84,7 +90,6 @@ void MySlicGLSL::InitClusters(Mat& frameLab) {
 			n++;
 		}
 	}
-
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_clusters);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, 5 * m_nSpx*sizeof(float), m_clusters);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
@@ -123,17 +128,14 @@ void MySlicGLSL::ClearBuffers() {
 
 	glBindTexture(GL_TEXTURE_2D, text_distances);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo_distances);
-	//glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_width, m_height, GL_RED, GL_FLOAT, 0);
 	glClearTexImage(text_distances, 0, GL_RED, GL_FLOAT, m_distances);
 
 	glBindTexture(GL_TEXTURE_2D, text_labels);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo_labels);
-	//glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_width, m_height, GL_RED, GL_FLOAT, 0);
 	glClearTexImage(text_labels, 0, GL_RED, GL_FLOAT, m_labels);
 
 	glBindTexture(GL_TEXTURE_2D, text_isTaken);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo_isTaken);
-	//glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_width, m_height, GL_RED, GL_FLOAT, 0);
 	glClearTexImage(text_isTaken, 0, GL_RED, GL_FLOAT, m_isTaken);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -143,15 +145,13 @@ void MySlicGLSL::ClearBuffers() {
 void MySlicGLSL::CreateCS() {
 
 	//vertex shader
-	vsProg = createProgShader(GL_VERTEX_SHADER, "vertex.glsl");
+	vsProg = createProgShader(GL_VERTEX_SHADER, vs_path);
 	//fragment shader
-	fsProg = createProgShader(GL_FRAGMENT_SHADER, "fragment.glsl");
+	fsProg = createProgShader(GL_FRAGMENT_SHADER,fs_path);
 	//compute shader
-	//csProg_segmentation = createProgShader(GL_COMPUTE_SHADER, "cs_segmentation.glsl");
-	csProg_PxFindNearestCluster = createProgShader(GL_COMPUTE_SHADER, "cs_PxFindNearestCluster.glsl");
-	csProg_UpdateClusters = createProgShader(GL_COMPUTE_SHADER, "cs_UpdateClusters.glsl");
-
-	csProg_DrawBound = createProgShader(GL_COMPUTE_SHADER, "cs_DrawBound.glsl");
+	csProg_PxFindNearestCluster = createProgShader(GL_COMPUTE_SHADER, cs_PxFindNearestCluster_path);
+	csProg_UpdateClusters = createProgShader(GL_COMPUTE_SHADER, cs_UpdateClusters_path);
+	csProg_DrawBound = createProgShader(GL_COMPUTE_SHADER, cs_DrawBound_path);
 }
 
 void MySlicGLSL::SendFrame(Mat& frame,Mat& frameLab)
@@ -232,7 +232,6 @@ void MySlicGLSL::gpu_DrawBound() {
 void MySlicGLSL::displayBound(Mat& image, Scalar colour)
 {
 
-
 	const int dx8[8] = { -1, -1,  0,  1, 1, 1, 0, -1 };
 	const int dy8[8] = { 0, -1, -1, -1, 0, 1, 1,  1 };
 
@@ -283,30 +282,29 @@ void MySlicGLSL::displayBound(Mat& image, Scalar colour)
 
 void MySlicGLSL::enforceConnectivity()
 {
-
 	glBindTexture(GL_TEXTURE_2D, text_labels);
+	//getTexture(text_labels,GL_RED,GL_FLOAT,m_labelsCPU);
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo_labels);
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_RED, GL_FLOAT, 0); // asynchrone call , texture -> pbo, no time
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RED, GL_FLOAT, 0); //tex->pbo
 
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo_labels);
 
-	glBufferData(GL_PIXEL_PACK_BUFFER, m_nPx * sizeof(float), NULL, GL_STREAM_READ);
-	auto start = getTickCount();
-	GLfloat* ptr = (GLfloat *)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY); // return pointer on the pbo, take time when gpu is busy and it is the case
-	auto end = getTickCount();
-	cout << "labelMat from gpu load time " << (end - start) / getTickFrequency() << endl;
+	GLfloat* ptr = (GLfloat *)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY); //pbo->cpu
 
 	if (ptr)
 	{
 		memcpy(m_labelsCPU, ptr, m_nPx * sizeof(float));
-		glUnmapBufferARB(GL_PIXEL_PACK_BUFFER); // release pointer to mapping buffer
+		glUnmapBuffer(GL_PIXEL_PACK_BUFFER); // release pointer to mapping buffer
 	}
+	else{
+		cerr<<"! did not get label from gpu"<<endl;
+	}
+
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
-	/*
-	int label = 0, adjlabel = 0;
+    int label = 0, adjlabel = 0;
 	int lims = (m_width * m_height) / (m_nSpx);
 	lims = lims >> 2;
 
@@ -367,11 +365,29 @@ void MySlicGLSL::enforceConnectivity()
 			}
 		}
 	}
-	m_nSpx = label;
+
+	//m_nSpx = label;
 	for (int i = 0; i<newLabels.size(); i++)
 		for (int j = 0; j<newLabels[i].size(); j++)
 			m_labelsCPU[i*m_width+j] = newLabels[i][j];
 
-			*/
+
+    // send back to gpu (if need to draw with opengl)
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER,pbo_labels);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, m_nPx* sizeof(float), 0, GL_STREAM_DRAW);
+    GLfloat * ptrf = (GLfloat*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+    if (ptrf)
+    {
+        memcpy(ptrf, m_labelsCPU, m_nPx * sizeof(float));
+        glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER); // release pointer to mapping buffer
+    }
+
+    glBindTexture(GL_TEXTURE_2D, text_labels);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo_labels);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_width, m_height, GL_RED, GL_FLOAT, 0); //transfer from pbo to texture
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
 
 }

@@ -1,7 +1,11 @@
 #version 430
 #extension GL_ARB_compute_variable_group_size : enable
+
+/*
+Compute Shader : Boundary drawing
+*/
+
 layout(local_size_variable) in;
-//layout(local_size_x = 16,local_size_y=16) in;
 layout(rgba32f,binding=0) uniform image2D frame;
 layout(binding=3,r32f) uniform image2D labelsMat;
 layout(r32f,binding=4) coherent uniform image2D isTaken;

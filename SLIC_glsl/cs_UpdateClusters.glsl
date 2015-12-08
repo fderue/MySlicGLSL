@@ -1,5 +1,10 @@
 #version 430
 #extension GL_ARB_compute_variable_group_size : enable
+
+/*
+Compute Shader : Update step
+*/
+
 layout(local_size_variable) in;
 layout(std430, binding=0)coherent buffer ssbo{
 float att[];
@@ -28,12 +33,14 @@ void main(){
 			clusters.att[cluster_idx5+3] = accAtt[cluster_idx6+3]/counter;
 			clusters.att[cluster_idx5+4] = accAtt[cluster_idx6+4]/counter;
 
+//reset accumulator
 			accAtt[cluster_idx6] = 0;
 			accAtt[cluster_idx6+1] = 0;
 			accAtt[cluster_idx6+2] = 0;
 			accAtt[cluster_idx6+3] = 0;
 			accAtt[cluster_idx6+4] = 0;
 			accAtt[cluster_idx6+5] = 0;
+			barrier();
 		}
 	}
 }

@@ -28,10 +28,10 @@ void displayShaderLog(GLuint obj, string message)
 	int charsWritten = 0;
 	char *infoLog;
 
-	// afficher le message d'en-tête
+	// afficher le message d'en-tï¿½te
 	cout << message << endl;
 
-	// afficher le message d'erreur, le cas échéant
+	// afficher le message d'erreur, le cas ï¿½chï¿½ant
 	glGetShaderiv(obj, GL_INFO_LOG_LENGTH, &infologLength);
 
 	if (infologLength > 1)
@@ -84,8 +84,8 @@ char *textFileRead(char *fn) {
 	char *content = NULL;
 	size_t count = 0;
 	if (fn != NULL) {
-		//fp = fopen(fn, "rt");
-		fopen_s(&fp, fn, "rt");
+		fp = fopen(fn, "rt");
+		//fopen_s(&fp, fn, "rt");
 		if (fp != NULL) {
 
 			fseek(fp, 0, SEEK_END);
