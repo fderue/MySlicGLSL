@@ -64,7 +64,15 @@ int main(int argc, char* argv[]) {
 #if !VIDEO
 	MySlicGLSL slicIm(SPX_SIZE, WC);
 	slicIm.Initialize(im);
-	slicIm.Segment(im);
+
+	for(int i=0; i<10; i++) {
+
+
+		auto start = getTickCount();
+		slicIm.Segment(im);
+		auto end = getTickCount();
+		cout << "runtime glsl " << (end - start) / getTickFrequency() << endl;
+	}
 	slicIm.gpu_DrawBound();
 	glutMainLoop();
 #else

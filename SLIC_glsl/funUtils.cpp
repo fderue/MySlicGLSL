@@ -169,5 +169,4 @@ void getWlHl(int w, int h, int d, int& wl, int& hl) {
 	}
 	wl = ((d - wl2) < (wl1 - d)) ? wl2 : wl1;
 	hl = ((d - hl2) < (hl1 - d)) ? hl2 : hl1;
-
 }
